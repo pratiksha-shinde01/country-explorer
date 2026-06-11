@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import LoadingSpinner from "../components/LoadingSpinner";
 
 const CountryDetails = () => {
   const { name } = useParams();
@@ -16,12 +15,23 @@ const CountryDetails = () => {
       try {
         setLoading(true);
 
-        const res = await axios.get(
-          `https://restcountries.com/v3.1/name/${name}?fullText=true&fields=name,flags,region,capital,population,subregion,languages,currencies,area`
+        const response = await axios.get(
+          "https://raw.githubusercontent.com/mledoze/countries/master/countries.json"
         );
 
-        setCountry(res.data[0]);
+        const foundCountry = response.data.find(
+          (c) =>
+            c.name?.common?.toLowerCase() ===
+            decodeURIComponent(name).toLowerCase()
+        );
+
+        if (!foundCountry) {
+          setError("Country not found.");
+        } else {
+          setCountry(foundCountry);
+        }
       } catch (err) {
+        console.error(err);
         setError("Failed to fetch country details.");
       } finally {
         setLoading(false);
@@ -32,12 +42,16 @@ const CountryDetails = () => {
   }, [name]);
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        <h2 className="text-2xl">Loading...</h2>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <h2 className="text-red-500 text-2xl">
           {error}
         </h2>
@@ -51,7 +65,7 @@ const CountryDetails = () => {
 
         <button
           onClick={() => navigate(-1)}
-          className="mb-8 px-5 py-2 cursor-pointer bg-cyan-600 hover:bg-cyan-700 rounded-lg transition"
+          className="mb-8 px-5 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg transition cursor-pointer"
         >
           ← Back
         </button>
@@ -59,7 +73,7 @@ const CountryDetails = () => {
         <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-xl">
 
           <img
-            src={country.flags?.svg}
+            src={country.flags?.svg || country.flags?.png}
             alt={country.name?.common}
             className="w-full h-80 object-cover"
           />
@@ -80,12 +94,14 @@ const CountryDetails = () => {
 
                 <p>
                   <strong>Capital:</strong>{" "}
-                  {country.capital?.[0] || "N/A"}
+                  {Array.isArray(country.capital)
+                    ? country.capital[0]
+                    : country.capital || "N/A"}
                 </p>
 
                 <p>
                   <strong>Region:</strong>{" "}
-                  {country.region}
+                  {country.region || "N/A"}
                 </p>
 
                 <p>

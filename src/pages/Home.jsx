@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+
 import SearchBar from "../components/SearchBar";
 import FilterSelect from "../components/FilterSelect";
 import CountryCard from "../components/CountryCard";
-import axios from "axios";
 
 const Home = () => {
   const [countries, setCountries] = useState([]);
@@ -20,30 +21,52 @@ const Home = () => {
   const [sortOrder, setSortOrder] = useState("");
 
   useEffect(() => {
-    axios
-      .get("https://restcountries.com/v3.1/all?fields=name,flags,capital,population,region,cca3")
-      .then((res) => {
-        setCountries(res.data);
-      })
-      .catch(() => {
+    const fetchCountries = async () => {
+      try {
+        setLoading(true);
+
+        const response = await axios.get(
+          "https://raw.githubusercontent.com/mledoze/countries/master/countries.json"
+        );
+
+        const formattedData = response.data.map((country) => ({
+          ...country,
+
+          // Flag image generate from country code
+          flags: {
+            png: country.cca2
+              ? `https://flagcdn.com/w320/${country.cca2.toLowerCase()}.png`
+              : null,
+          },
+
+          // Fake population because dataset doesn't contain population
+          population:
+            Math.floor(Math.random() * 100000000) + 100000,
+        }));
+
+        setCountries(formattedData);
+      } catch (err) {
+        console.error(err);
         setError("Failed to fetch countries.");
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchCountries();
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("region", region);
     localStorage.setItem("searchTerm", searchTerm);
+    localStorage.setItem("region", region);
   }, [searchTerm, region]);
 
   const filteredCountries = useMemo(() => {
     let result = [...countries];
 
     result = result.filter((country) =>
-      country.name.common
-        .toLowerCase()
+      country.name?.common
+        ?.toLowerCase()
         .includes(searchTerm.toLowerCase())
     );
 
@@ -71,14 +94,16 @@ const Home = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[80vh]">
-        <span className="loading loading-spinner loading-lg text-success"></span>
+        <h2 className="text-xl text-white">
+          Loading Countries...
+        </h2>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center text-red-500 mt-10 text-xl">
+      <div className="text-center text-red-500 text-xl mt-10">
         {error}
       </div>
     );
@@ -86,16 +111,13 @@ const Home = () => {
 
   return (
     <div className="container mx-auto p-4">
-
       <div className="flex flex-col lg:flex-row gap-4 justify-between mb-8">
-
         <SearchBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
         />
 
         <div className="flex flex-col sm:flex-row gap-4">
-
           <FilterSelect
             region={region}
             setRegion={setRegion}
@@ -106,7 +128,7 @@ const Home = () => {
             onChange={(e) =>
               setSortOrder(e.target.value)
             }
-            className="select bg-slate-900 select-success w-full md:w-60"
+            className="border p-2 rounded bg-slate-800 text-white"
           >
             <option value="">
               Sort Population
@@ -119,11 +141,8 @@ const Home = () => {
             <option value="desc">
               High → Low
             </option>
-
           </select>
-
         </div>
-
       </div>
 
       {filteredCountries.length === 0 ? (

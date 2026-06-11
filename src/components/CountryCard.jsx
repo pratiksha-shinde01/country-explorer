@@ -9,70 +9,96 @@ const CountryCard = ({ country }) => {
       "homeScroll",
       String(window.scrollY || 0)
     );
+
     sessionStorage.setItem(
       "homePath",
       location.pathname
     );
   };
 
-  return (
-    <div className="
-      bg-slate-800
-      rounded-2xl
-      overflow-hidden
-      shadow-lg
-      hover:shadow-cyan-500/30
-      hover:scale-105
-      transition-all
-      duration-300
-    ">
+  const flagUrl =
+    country?.flags?.svg ||
+    country?.flags?.png ||
+    null;
 
-      <img
-        src={country.flags.svg}
-        alt={country.name.common}
-        className="h-48 w-full object-cover"
-      />
+  return (
+    <div
+      className="
+        bg-slate-800
+        rounded-2xl
+        overflow-hidden
+        shadow-lg
+        hover:shadow-cyan-500/30
+        hover:scale-105
+        transition-all
+        duration-300
+      "
+    >
+      {flagUrl ? (
+        <img
+          src={flagUrl}
+          alt={country?.name?.common}
+          className="h-48 w-full object-cover"
+        />
+      ) : (
+        <div className="h-48 w-full flex items-center justify-center bg-slate-700 text-white text-lg">
+          🚩 No Flag Available
+        </div>
+      )}
 
       <div className="p-5">
-
-        <h2 className="font-bold text-xl mb-3">
-          {country.name.common}
+        <h2 className="font-bold text-xl mb-3 text-white">
+          {country?.name?.common || "Unknown Country"}
         </h2>
 
-        <p>
+        <p className="text-gray-300">
           <span className="font-semibold">
             Population:
           </span>{" "}
-          {country.population.toLocaleString()}
+          {country?.population?.toLocaleString() ||
+            "N/A"}
         </p>
 
-        <p>
+        <p className="text-gray-300">
           <span className="font-semibold">
             Region:
           </span>{" "}
-          {country.region}
+          {country?.region || "N/A"}
         </p>
 
-        <p>
+        <p className="text-gray-300">
           <span className="font-semibold">
             Capital:
           </span>{" "}
-          {country.capital?.[0] || "N/A"}
+          {Array.isArray(country?.capital)
+            ? country.capital[0]
+            : country?.capital || "N/A"}
         </p>
 
         <Link
-          to={`/country/${country.name.common}`}
+          to={`/country/${encodeURIComponent(
+            country?.name?.common || ""
+          )}`}
         >
           <button
             onClick={handleClick}
-            className="btn bg-white py-2 px-4 text-gray-900 cursor-pointer btn-success mt-4 w-full"
+            className="
+              mt-4
+              w-full
+              bg-cyan-600
+              hover:bg-cyan-700
+              text-white
+              py-2
+              px-4
+              rounded-lg
+              cursor-pointer
+              transition
+            "
           >
             View Details
           </button>
         </Link>
-
       </div>
-
     </div>
   );
 };
