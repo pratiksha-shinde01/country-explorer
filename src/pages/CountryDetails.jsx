@@ -72,12 +72,15 @@ const CountryDetails = () => {
 
         <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-xl">
 
-          <img
-            src={country.flags?.svg || country.flags?.png}
-            alt={country.name?.common}
-            className="w-full h-80 object-cover"
-          />
-
+         <img
+  src={`https://flagcdn.com/w640/${country.cca2.toLowerCase()}.png`}
+  alt={country.name?.common}
+  className="w-full h-80 object-cover"
+  onError={(e) => {
+    e.target.src =
+      "https://placehold.co/640x400?text=No+Flag";
+  }}
+/>
           <div className="p-8">
 
             <h1 className="text-4xl font-bold mb-6">
@@ -113,7 +116,9 @@ const CountryDetails = () => {
               <div>
                 <p>
                   <strong>Population:</strong>{" "}
-                  {country.population?.toLocaleString()}
+                  {country.population
+  ? country.population.toLocaleString()
+  : "N/A"}
                 </p>
 
                 <p>
